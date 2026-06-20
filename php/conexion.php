@@ -9,7 +9,7 @@ date_default_timezone_set('America/Mexico_City');
 
 // Conexión a la BD SQL de pruebas,
                     //  Server     Usuario  Contraseña     NombreBD
-$conexion=new mysqli("mysql.railway.internal","root","ybrkvaWZMdsexhYnUHVRcjauVXZWgdKg","solicitudes");
+$conexion=new mysqli("mysql.railway.internal","root","ybrkvaWZMdsexhYnUHVRcjauVXZWgdKg","railway");
 $conexion->set_charset("utf8");
 
 ?>
