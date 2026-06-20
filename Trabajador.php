@@ -623,6 +623,7 @@ $initNotifMaxId = !empty($notificaciones) ? (int)max(array_column($notificacione
             solCount:   <?= $totalSolicitudes ?>,
             asgFp:      '<?= $initAsgFp ?>'
         });
+        iniciarConexion();
         <?php if (!empty($old['id_sol'])): ?>
         (function () {
             var sel = document.getElementById('select-solicitud-reporte');

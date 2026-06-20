@@ -39,6 +39,7 @@ input, select, textarea {
 .contenido-principal {
     margin-left: 230px;
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     transition: margin-left 0.25s ease;
@@ -1005,7 +1006,6 @@ tbody tr:hover {
     .layout-crear       { grid-template-columns: 1fr; }
 }
 
-/* Overlay para el sidebar en móvil (creado por JS, estilos aquí) */
 .sidebar-overlay {
     display: none;
     position: fixed;
@@ -1015,23 +1015,91 @@ tbody tr:hover {
 }
 .sidebar-overlay.visible { display: block; }
 
+.mapa-gps-contenedor {
+    height: 420px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.lista-gps-usuarios {
+    display: flex;
+    flex-direction: column;
+}
+
+.fila-gps-usuario {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f0f2f5;
+    transition: background 0.15s;
+}
+.fila-gps-usuario:last-child { border-bottom: none; }
+.fila-gps-usuario.con-ubicacion { cursor: pointer; }
+.fila-gps-usuario.con-ubicacion:hover { background: #f8fafc; }
+
+.gps-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.gps-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.gps-nombre {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1a2340;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gps-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 3px;
+}
+
+.gps-cargando {
+    text-align: center;
+    color: #8f98b2;
+    padding: 24px;
+    font-size: 14px;
+}
+
+.fondo-modal-geo {
+    z-index: 500;
+}
+
 @media (max-width: 768px) {
-    /* Sidebar como panel deslizable sobre el contenido */
     .sidebar {
         transform: translateX(-100%);
         z-index: 300;
     }
-    body.sidebar-movil-abierta .sidebar {
+    .sidebar.sidebar-abierta {
         transform: translateX(0);
         box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
     }
 
-    /* Contenido siempre a ancho completo en móvil */
     .contenido-principal {
         margin-left: 0 !important;
+        overflow-x: clip;
     }
 
-    /* Espaciado interior reducido */
     .cuerpo-pagina {
         padding: 12px 10px;
         gap: 12px;
@@ -1043,18 +1111,19 @@ tbody tr:hover {
         display: none;
     }
 
-    /* Formularios en columna única */
     .fila-form {
         grid-template-columns: 1fr;
     }
 
-    /* Encabezados de tarjeta flexibles */
     .tarjeta-encabezado {
         flex-wrap: wrap;
         gap: 8px;
     }
 
-    /* Tarjetas de solicitud apiladas */
+    .tarjeta-cuerpo {
+        padding: 12px;
+    }
+
     .tarjeta-solicitud {
         flex-direction: column;
         align-items: flex-start;
@@ -1064,31 +1133,47 @@ tbody tr:hover {
         flex-wrap: wrap;
     }
 
-    /* Barra de búsqueda flexible */
     .campo-busqueda {
         min-width: 0;
         max-width: none;
         flex: 1 1 0;
     }
 
-    /* Panel de notificaciones acotado al viewport */
+    .barra-herramientas select,
+    .barra-filtros select,
+    .barra-herramientas input,
+    .barra-filtros input {
+        min-width: 0 !important;
+        width: 100% !important;
+        flex: 1 1 100%;
+    }
+
     .notif-panel {
         width: calc(100vw - 24px);
         right: -8px;
     }
 
-    /* Botones del pie del modal */
     .modal-pie {
         flex-wrap: wrap;
     }
 
-    /* Modal interior */
     .modal {
         padding: 18px 16px;
     }
+
+    .acciones-tabla {
+        flex-wrap: wrap;
+    }
+
+    .mapa-gps-contenedor {
+        height: 260px;
+    }
+
+    .gps-meta {
+        gap: 6px;
+    }
 }
 
-/* ── Notificaciones ── */
 .notif-contenedor {
     position: relative;
     flex-shrink: 0;
@@ -1221,7 +1306,6 @@ tbody tr:hover {
     background: #fef0f0;
 }
 
-/* ── Sidebar colapsable ─────────────────────────────────────── */
 .nav-icono {
     flex-shrink: 0;
     width: 16px;
@@ -1246,6 +1330,9 @@ tbody tr:hover {
     justify-content: center;
     flex-shrink: 0;
     transition: background 0.15s;
+    position: relative;
+    z-index: 400;
+    touch-action: manipulation;
 }
 
 .btn-hamburguesa:hover {

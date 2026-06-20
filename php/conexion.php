@@ -7,8 +7,9 @@ if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'] ?? '')) {
 
 date_default_timezone_set('America/Mexico_City');
 
-$conexion=new mysqli("mysql.railway.internal","root","mZUjUViLXfUTyZEEpysTMgcKGxpfQlzb","railway");
-
+// Conexión a la BD SQL de pruebas,
+                    //  Server     Usuario  Contraseña     NombreBD
+$conexion=new mysqli("localhost",  "root",   "12345",   "solicitudes");
 $conexion->set_charset("utf8");
 
 ?>

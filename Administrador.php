@@ -88,6 +88,7 @@ $listaCategorias = $qCatLista->fetch_all(MYSQLI_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Solicitudes - Administrador — ITSRV</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body class="layout-app">
 
@@ -113,6 +114,11 @@ $listaCategorias = $qCatLista->fetch_all(MYSQLI_ASSOC);
         </div>
 
         <nav class="sidebar-nav">
+            <div class="nav-etiqueta-seccion">Ubicaciones</div>
+            <a href="#" class="nav-link nav-item" data-section="gps">
+                <svg class="nav-icono" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="nav-texto">GPS</span>
+            </a>
             <div class="nav-etiqueta-seccion">Bitácora</div>
             <a href="#" class="nav-link nav-item active" data-section="bitacora">
                 <svg class="nav-icono" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
@@ -164,6 +170,33 @@ $listaCategorias = $qCatLista->fetch_all(MYSQLI_ASSOC);
             <?php if ($msgError): ?>
                 <div class="alerta alerta-error"><?= htmlspecialchars($msgError) ?></div>
             <?php endif; ?>
+
+            <!-- GPS / UBICACIONES -->
+            <div id="gps" class="section" style="display:none;">
+                <div class="tarjeta">
+                    <div class="tarjeta-encabezado">
+                        <div class="tarjeta-titulo">Mapa de ubicaciones</div>
+                        <div style="display:flex; gap:16px; align-items:center; font-size:13px; color:#4d5a7a;">
+                            <span style="display:flex; align-items:center; gap:6px;">
+                                <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#1a6fa3; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>Trabajador
+                            </span>
+                            <span style="display:flex; align-items:center; gap:6px;">
+                                <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#e25c00; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>Solicitante
+                            </span>
+                        </div>
+                    </div>
+                    <div id="mapa-gps" class="mapa-gps-contenedor"></div>
+                </div>
+                <div class="tarjeta">
+                    <div class="tarjeta-encabezado">
+                        <div class="tarjeta-titulo">Usuarios</div>
+                        <span id="gps-ultima-actualizacion" class="texto-apagado" style="font-size:13px;">—</span>
+                    </div>
+                    <div id="lista-gps-usuarios" class="lista-gps-usuarios">
+                        <div class="gps-cargando">Navega a esta sección para cargar.</div>
+                    </div>
+                </div>
+            </div>
 
             <!-- BITÁCORA -->
             <div id="bitacora" class="section active">
@@ -562,6 +595,7 @@ $listaCategorias = $qCatLista->fetch_all(MYSQLI_ASSOC);
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/comun.js"></script>
     <script src="js/polling.js"></script>
     <script src="js/administrador.js"></script>

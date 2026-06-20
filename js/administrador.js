@@ -1,4 +1,5 @@
 var titulosSecciones = {
+    gps:               'Ubicaciones',
     bitacora:          'Bitácora',
     'generar-reporte': 'Generar Reporte',
     'admin-usuarios':  'Administrar Usuarios',
@@ -257,9 +258,167 @@ function closeAreaModal() {
     document.getElementById('areaModal').classList.remove('abierto');
 }
 
-document.getElementById('areaModal').addEventListener('click', function (e) {
-    if (e.target === this) closeAreaModal();
-});
+(function () {
+    var el = document.getElementById('areaModal');
+    if (el) el.addEventListener('click', function (e) { if (e.target === this) closeAreaModal(); });
+})();
+
+// ── GPS / Ubicaciones ─────────────────────────────────────────────────────────
+(function () {
+    var mapa    = null;
+    var markers = {};
+
+    function escH(s) {
+        var d = document.createElement('div');
+        d.textContent = String(s || '');
+        return d.innerHTML;
+    }
+
+    function timeAgo(epochSec) {
+        if (!epochSec) return 'Nunca';
+        var diff = Math.floor(Date.now() / 1000 - Number(epochSec));
+        if (diff < 5)     return 'ahora';
+        if (diff < 60)    return 'hace ' + diff + 's';
+        if (diff < 3600)  return 'hace ' + Math.floor(diff / 60) + ' min';
+        if (diff < 86400) return 'hace ' + Math.floor(diff / 3600) + ' h';
+        return 'hace ' + Math.floor(diff / 86400) + ' día(s)';
+    }
+
+    function makeIcon(idRol) {
+        var color = (idRol == 2) ? '#1a6fa3' : '#e25c00';
+        return L.divIcon({
+            className: '',
+            html: '<div style="width:14px;height:14px;border-radius:50%;background:' + color + ';border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div>',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7],
+            popupAnchor: [0, -12]
+        });
+    }
+
+    function cargarUbicaciones() {
+        fetch('php/api_ubicacion_admin.php')
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function (usuarios) {
+                actualizarMarcadores(usuarios);
+                actualizarLista(usuarios);
+                var el = document.getElementById('gps-ultima-actualizacion');
+                if (el) el.textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-MX');
+            })
+            .catch(function () {});
+    }
+
+    function actualizarMarcadores(usuarios) {
+        if (!mapa) return;
+        var vistos = {};
+        usuarios.forEach(function (u) {
+            var lat = parseFloat(u.ultima_lat);
+            var lng = parseFloat(u.ultima_lng);
+            if (!u.ultima_lat || !u.ultima_lng || isNaN(lat) || isNaN(lng)) return;
+            vistos[u.id_us] = true;
+
+            var popup = '<strong>' + escH(u.nombre_completo) + '</strong><br>' +
+                        '<span style="font-size:12px;color:#666;">' + escH(u.rol) + '</span><br>' +
+                        '<span style="font-size:11px;color:#888;">' + timeAgo(u.ts_ubicacion) + '</span>';
+
+            if (markers[u.id_us]) {
+                markers[u.id_us].setLatLng([lat, lng]);
+                markers[u.id_us].setPopupContent(popup);
+            } else {
+                var m = L.marker([lat, lng], { icon: makeIcon(u.id_rol) }).addTo(mapa);
+                m.bindPopup(popup);
+                markers[u.id_us] = m;
+            }
+        });
+        Object.keys(markers).forEach(function (id) {
+            if (!vistos[id]) {
+                mapa.removeLayer(markers[id]);
+                delete markers[id];
+            }
+        });
+    }
+
+    function actualizarLista(usuarios) {
+        var lista = document.getElementById('lista-gps-usuarios');
+        if (!lista) return;
+        lista.innerHTML = '';
+        if (!usuarios.length) {
+            lista.innerHTML = '<div class="gps-cargando">Sin usuarios registrados.</div>';
+            return;
+        }
+        usuarios.forEach(function (u) {
+            var tieneUb    = u.ultima_lat && u.ultima_lng;
+            var avatarBg   = (u.id_rol == 2) ? '#1a6fa3' : '#4d7a3d';
+            var rolStyle   = (u.id_rol == 2)
+                ? 'background:#e8f4fd;color:#1a6fa3;border-color:#b3d7f0;'
+                : 'background:#e8f7e8;color:#2d6a2d;border-color:#9fd49f;';
+            var iniciales  = u.nombre_completo.trim().split(/\s+/).slice(0, 2)
+                               .map(function (w) { return w[0] || ''; }).join('').toUpperCase();
+            var lat = parseFloat(u.ultima_lat);
+            var lng = parseFloat(u.ultima_lng);
+
+            var div = document.createElement('div');
+            div.className = 'fila-gps-usuario' + (tieneUb ? ' con-ubicacion' : '');
+            if (tieneUb && !isNaN(lat) && !isNaN(lng)) {
+                (function (id, la, lo) {
+                    div.onclick = function () {
+                        mapa.setView([la, lo], 17, { animate: true });
+                        if (markers[id]) markers[id].openPopup();
+                    };
+                })(u.id_us, lat, lng);
+            }
+
+            div.innerHTML =
+                '<div class="gps-avatar" style="background:' + avatarBg + ';">' + escH(iniciales) + '</div>' +
+                '<div class="gps-info">' +
+                    '<div class="gps-nombre">' + escH(u.nombre_completo) + '</div>' +
+                    '<div class="gps-meta">' +
+                        '<span class="etiqueta" style="font-size:11px;' + rolStyle + '">' + escH(u.rol) + '</span>' +
+                        '<span class="texto-apagado" style="font-size:12px;">Última conexión: ' + timeAgo(u.ts_conexion) + '</span>' +
+                        (tieneUb
+                            ? '<span class="texto-apagado" style="font-size:12px;">  Ubicación actualizada: ' + timeAgo(u.ts_ubicacion) + '</span>'
+                            : '<span class="texto-apagado" style="font-size:12px;">  Sin ubicación</span>') +
+                    '</div>' +
+                '</div>' +
+                (tieneUb
+                    ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#8f98b2" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>'
+                    : '');
+            lista.appendChild(div);
+        });
+    }
+
+    function initMap() {
+        if (typeof L === 'undefined') return;
+        var contenedor = document.getElementById('mapa-gps');
+        if (!contenedor) return;
+        if (mapa) { mapa.invalidateSize(); return; }
+        mapa = L.map('mapa-gps').setView([21.9374, -100.0024], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+            maxZoom: 19
+        }).addTo(mapa);
+        cargarUbicaciones();
+        setInterval(cargarUbicaciones, 30000);
+    }
+
+    // Observar cuándo la sección GPS se vuelve visible (display != 'none')
+    var secGPS = document.getElementById('gps');
+    if (secGPS && window.MutationObserver) {
+        var obs = new MutationObserver(function (mutations) {
+            mutations.forEach(function (m) {
+                if (m.attributeName === 'style' && secGPS.style.display !== 'none') {
+                    requestAnimationFrame(initMap);
+                }
+            });
+        });
+        obs.observe(secGPS, { attributes: true, attributeFilter: ['style'] });
+    }
+
+    // Fallback: click directo en el nav link
+    var navGPS = document.querySelector('.nav-link[data-section="gps"]');
+    if (navGPS) {
+        navGPS.addEventListener('click', function () { setTimeout(initMap, 150); });
+    }
+})();
 
 function deleteArea(id, nombre) {
     if (!confirm('¿Eliminar el área "' + nombre + '"? Esta acción no se puede deshacer.')) return;

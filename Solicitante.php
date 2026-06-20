@@ -496,6 +496,7 @@ $initNotifMaxId = !empty($notificaciones) ? (int)max(array_column($notificacione
             solFp:      '<?= $initSolFp ?>',
             solCount:   <?= $totalSolicitudes ?>
         });
+        iniciarConexion();
         <?php if (!empty($old['id_area'])): ?>
         document.getElementById('area').value = '<?= (int)$old['id_area'] ?>';
         <?php endif; ?>
